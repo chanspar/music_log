@@ -1,0 +1,68 @@
+FROM ubuntu:22.04
+
+# 환경 변수: 비대화식 설치, 타임존 설정
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Seoul
+
+# 필수 패키지 설치 및 정리
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        # python3 \
+        # python3-pip \
+        openjdk-8-jdk \
+        tzdata \
+        scala \
+        wget \
+        curl \
+        git \
+        gnupg \
+        vim \
+        cron && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# kafka-python 설치
+# RUN pip3 install --no-cache-dir kafka-python
+
+# Java 환경 변수 추가
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+
+# sbt 설치
+# 기존 bintray 저장소 제거
+RUN rm -f /etc/apt/sources.list.d/sbt.list /etc/apt/sources.list.d/sbt_old.list || true
+
+# 새로운 공식 sbt 저장소 추가
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list
+
+# GPG 키 추가 (deprecated apt-key 대신 새로운 방법)
+RUN curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | tee /etc/apt/trusted.gpg.d/sbt.asc
+
+# 패키지 목록 업데이트 및 sbt 설치
+RUN apt-get update && apt-get install -y sbt && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+# 작업 디렉터리 생성 및 소스 복사
+WORKDIR /app
+COPY . /app
+
+RUN sbt assembly
+
+# 스크립트 파일들을 올바른 위치에 복사 및 권한 설정
+COPY entrypoint.sh /entrypoint.sh
+COPY eventsim-run.sh /app/eventsim-run.sh
+
+# 스크립트 권한 설정
+RUN chmod +x bin/eventsim
+RUN chmod +x eventsim-run.sh
+RUN chmod +x entrypoint.sh
+
+# dos2unix로 줄바꿈 문제 해결
+RUN sed -i 's/\r$//' bin/eventsim
+RUN sed -i 's/\r$//' eventsim-run.sh  
+RUN sed -i 's/\r$//' entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
