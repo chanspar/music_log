@@ -1,0 +1,58 @@
+
+networks:
+  kafka-net:
+    driver: bridge
+
+services:
+  # Master Node (t2.medium) - Kafka + Prometheus + Grafana 설치 
+  kafka1:
+    image: ubuntu:22.04
+    container_name: kafka1
+    tty: true
+    stdin_open: true
+    networks:
+      - kafka-net
+    ports:
+      - "9092:9092"  # Kafka external
+    #   - "9097:9097"  # Kafka internal
+      - "9090:9090"  # Prometheus
+      - "3000:3000"  # Grafana
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4g
+
+  # Node 2 (t2.small)
+  kafka2:
+    image: ubuntu:22.04
+    container_name: kafka2
+    tty: true
+    stdin_open: true
+    networks:
+      - kafka-net
+    ports:
+      - "9093:9092"
+    #   - "9098:9097"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2g
+
+  # Node 3 (t2.small)
+  kafka3:
+    image: ubuntu:22.04
+    container_name: kafka3
+    tty: true
+    stdin_open: true
+    networks:
+      - kafka-net
+    ports:
+      - "9094:9092"
+    #   - "9099:9097"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2g
