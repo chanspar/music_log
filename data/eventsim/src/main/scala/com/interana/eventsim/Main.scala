@@ -126,6 +126,7 @@ object Main extends App {
   val realTime = ConfFromOptions.realTime.get.get
 
   def generateEvents() = {
+    System.out.println("TEST MESSAGE: Eventsim is starting event generation.");
 
     val out = if (kafkaProducer.nonEmpty) {
       new KafkaOutputStream(kafkaProducer.get, ConfFromOptions.kafkaTopic.get.get)
@@ -207,7 +208,10 @@ object Main extends App {
         (endTime.toEpochSecond(ZoneOffset.UTC) - startTime.toEpochSecond(ZoneOffset.UTC) / Constants.SECONDS_PER_YEAR)
       clock = u.session.nextEventTimeStamp.get
 
-      if (clock.isAfter(startTime)) u.writeEvent()
+      if (clock.isAfter(startTime)) {
+        u.writeEvent()
+        System.out.println("DEBUG: Event written for user " + u.userId + " at " + clock.toString);
+      }
       u.nextEvent(prAttrition)
       users += u
       events += 1

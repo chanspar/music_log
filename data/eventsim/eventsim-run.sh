@@ -3,19 +3,19 @@ set -e
 
 cd /app
 
-# 현재 시간과 10분 후 시간을 ISO8601 형식으로 생성
-START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S")
-END_TIME=$(date -u -d "+10 minutes" +"%Y-%m-%dT%H:%M:%S")
+# LOG_FILE="/var/log/eventsim/eventsim.log"
+# mkdir -p $(dirname "$LOG_FILE")
 
-echo "$(date): Starting eventsim from $START_TIME to $END_TIME"
+echo "$(date): Starting eventsim with Whistle configuration (happy users)"
 
-# eventsim 실행 - JSON 형태로 출력 # 나중에 5만명 정도 늘려볼 것
-./bin/eventsim -c examples/example-config.json \
-    --start-time "$START_TIME" \
-    --end-time "$END_TIME" \
-    --nusers 3000 \
-    --growth-rate 0.2 \
-    --attrition-rate 0.1 \
-    --randomseed $RANDOM
+# Whistle 설정 파일 확인
+CONFIG_FILE="configs/Whistle-config.json"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Warning: $CONFIG_FILE not found, using default config"
+    CONFIG_FILE="examples/example-config.json"
+fi
 
-echo "$(date): Eventsim completed successfully"
+echo "Using config file: $CONFIG_FILE"
+
+# eventsim 실행 - continuous 모드
+./bin/eventsim -c "examples/example-config.json" --nusers 10 --randomseed 1     --start-time "$(date -Iseconds | cut -d'+' -f1)" --end-time "$(date -Iseconds -d '+1 hour' | cut -d'+' -f1)" --continuous 
