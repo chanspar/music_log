@@ -14,7 +14,6 @@ services:
       - kafka-net
     ports:
       - "9092:9092"  # Kafka external
-    #   - "9097:9097"  # Kafka internal
       - "9090:9090"  # Prometheus
       - "3000:3000"  # Grafana
     deploy:
@@ -33,7 +32,6 @@ services:
       - kafka-net
     ports:
       - "9093:9092"
-    #   - "9098:9097"
     deploy:
       resources:
         limits:
@@ -50,7 +48,6 @@ services:
       - kafka-net
     ports:
       - "9094:9092"
-    #   - "9099:9097"
     deploy:
       resources:
         limits:

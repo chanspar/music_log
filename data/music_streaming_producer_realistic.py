@@ -503,13 +503,22 @@ class RealisticMusicStreamingSimulator:
             print("\n🛑 사용자가 중지했습니다.")
         
         finally:
+            # Kafka 프로듀서가 있으면 최대 10초만 대기 후 강제 종료
             if self.producer:
-                self.producer.close()
+                try:
+                    self.producer.flush(timeout=10)      # 최대 10초만 대기
+                except Exception:
+                    pass
+                finally:
+                    self.producer.close(timeout=0)       # 즉시 닫기
+
+            # JSON 출력 파일 닫기
             if self.json_output:
                 self.json_output.close()
             print(f"✅ 총 {event_count:,}개 이벤트 처리 완료")
             if self.output_file:
                 print(f"📁 JSON 파일 저장 완료: {self.output_file}")
+
 
 def main():
     parser = argparse.ArgumentParser(description='대규모 현실적 음악 스트리밍 데이터 시뮬레이터')
